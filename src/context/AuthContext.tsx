@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
-  register: (email: string, password: string, name: string, role: UserRole) => Promise<void>
+  register: (email: string, password: string, name: string, role: UserRole, school: SchoolName) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -70,29 +70,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (email: string, password: string, name: string, role: UserRole) => {
+  const register = async (email: string, password: string, name: string, role: UserRole, school: SchoolName) => {
     try {
       // Validate email domain
       if (!email.endsWith(VALID_EMAIL_DOMAIN)) {
         throw new Error('Please use your @parkwayschools.net email address')
       }
 
-      // Check if email already exists
-      if (accounts.users.some(u => u.email === email)) {
-        throw new Error('Email already exists')
+      // Send registration request to API
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          role,
+          school,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Registration failed')
       }
 
-      // In a real app, you would make an API call to create the user
-      // For now, we'll just create a mock user
-      const newUser: User = {
-        id: Math.random().toString(36).substr(2, 9),
-        email,
-        name,
-        school: 'Parkway North' as SchoolName,
-        role,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString()
-      }
+      const newUser = await response.json()
       setUser(newUser)
       localStorage.setItem('user', JSON.stringify(newUser))
     } catch (error) {

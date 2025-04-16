@@ -1,0 +1,56 @@
+{
+  "chats": [
+    {
+      "userId": "srs4b4b2p",
+      "counselorEmail": "jsmith@parkwayschools.net",
+      "messages": [
+        {
+          "id": "1744829312761",
+          "userId": "srs4b4b2p",
+          "counselorEmail": "jsmith@parkwayschools.net",
+          "content": "YO",
+          "timestamp": "2025-04-16T18:48:32.761Z",
+          "isUser": true
+        },
+        {
+          "id": "1744829313771",
+          "userId": "srs4b4b2p",
+          "counselorEmail": "jsmith@parkwayschools.net",
+          "content": "Thank you for reaching out. This is jsmith. How can I help you today?",
+          "timestamp": "2025-04-16T18:48:33.770Z",
+          "isUser": false
+        },
+        {
+          "id": "1744829327396",
+          "userId": "srs4b4b2p",
+          "counselorEmail": "jsmith@parkwayschools.net",
+          "content": "who are you ",
+          "timestamp": "2025-04-16T18:48:47.396Z",
+          "isUser": true
+        },
+        {
+          "id": "1744829328409",
+          "userId": "srs4b4b2p",
+          "counselorEmail": "jsmith@parkwayschools.net",
+          "content": "Thank you for reaching out. This is jsmith. How can I help you today?",
+          "timestamp": "2025-04-16T18:48:48.408Z",
+          "isUser": false
+        }
+      ]
+    },
+    {
+      "userId": "srs4b4b2p",
+      "counselorEmail": "jdoe@parkwayschools.net",
+      "messages": [
+        {
+          "id": "1744829698505",
+          "userId": "srs4b4b2p",
+          "counselorEmail": "jdoe@parkwayschools.net",
+          "content": "test",
+          "timestamp": "2025-04-16T18:54:58.505Z",
+          "isUser": true
+        }
+      ]
+    }
+  ]
+}

@@ -21,6 +21,17 @@
       "createdAt": "2024-01-01T00:00:00.000Z",
       "lastLogin": "2024-03-19T00:00:00.000Z",
       "bio": "School counselor here to help"
+    },
+    {
+      "id": "srs4b4b2p",
+      "email": "careya2267@parkwayschools.net",
+      "password": "test",
+      "name": "Amare Carey",
+      "school": "Parkway North",
+      "role": "student",
+      "createdAt": "2025-04-16T18:19:56.265Z",
+      "lastLogin": "2025-04-16T18:19:56.265Z",
+      "bio": "this is a test edit"
     }
   ]
-} 
+}
