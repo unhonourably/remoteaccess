@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "jstudent@parkwayschools.net",
+      "password": "student123",
+      "name": "John Student",
+      "school": "Parkway North",
+      "role": "student",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "lastLogin": "2024-03-19T00:00:00.000Z",
+      "bio": "A dedicated student at Parkway North"
+    },
+    {
+      "id": "2",
+      "email": "jcounselor@parkwayschools.net",
+      "password": "counselor123",
+      "name": "Jane Counselor",
+      "school": "Parkway South",
+      "role": "counselor",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "lastLogin": "2024-03-19T00:00:00.000Z",
+      "bio": "School counselor here to help"
+    }
+  ]
+} 
