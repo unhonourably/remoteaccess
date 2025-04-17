@@ -1,0 +1,33 @@
+{
+  "name": "Parkway West High School",
+  "primaryColor": "#0000FF",
+  "accentColor": "#FFFFFF",
+  "counselors": [
+    {
+      "name": "David Wilson",
+      "email": "dwilson@parkwayschools.net",
+      "title": "Senior Counselor",
+      "availability": ["Monday", "Tuesday", "Thursday"],
+      "subjects": ["Mental Health", "Academic Planning"]
+    },
+    {
+      "name": "Emily Rodriguez",
+      "email": "erodriguez@parkwayschools.net",
+      "title": "Guidance Counselor",
+      "availability": ["Wednesday", "Friday"],
+      "subjects": ["Social Support", "Career Guidance"]
+    }
+  ],
+  "resources": [
+    {
+      "title": "Mental Health Support",
+      "description": "Resources for emotional well-being and counseling",
+      "link": "/resources/mental-health"
+    },
+    {
+      "title": "Career Exploration",
+      "description": "Discover potential career paths and opportunities",
+      "link": "/resources/careers"
+    }
+  ]
+} 

@@ -1,0 +1,33 @@
+{
+  "name": "Parkway Central High School",
+  "primaryColor": "#00FF00",
+  "accentColor": "#FFFFFF",
+  "counselors": [
+    {
+      "name": "Jennifer Taylor",
+      "email": "jtaylor@parkwayschools.net",
+      "title": "Head Counselor",
+      "availability": ["Monday", "Wednesday", "Friday"],
+      "subjects": ["Academic Success", "College Readiness"]
+    },
+    {
+      "name": "Robert Kim",
+      "email": "rkim@parkwayschools.net",
+      "title": "Student Support Counselor",
+      "availability": ["Tuesday", "Thursday"],
+      "subjects": ["Personal Growth", "Social Development"]
+    }
+  ],
+  "resources": [
+    {
+      "title": "Student Success",
+      "description": "Tools and strategies for academic excellence",
+      "link": "/resources/student-success"
+    },
+    {
+      "title": "College Preparation",
+      "description": "Get ready for your college journey",
+      "link": "/resources/college-prep"
+    }
+  ]
+} 

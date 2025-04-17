@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import LoginForm from '@/components/LoginForm'
@@ -46,7 +46,7 @@ interface RecentChat {
   timestamp: string
 }
 
-export default function DashboardPage() {
+function GetHelpContent() {
   const searchParams = useSearchParams()
   const { user, loading } = useAuth()
   const [settings, setSettings] = useState<SchoolSettings | null>(null)
@@ -59,6 +59,7 @@ export default function DashboardPage() {
     upcomingAppointments: 0
   })
   const [recentChats, setRecentChats] = useState<RecentChat[]>([])
+  const [error, setError] = useState<string | null>(null)
   
   const school = searchParams.get('school')
 
@@ -95,7 +96,10 @@ export default function DashboardPage() {
           }
         })
       })
-      .catch(err => console.error('Error loading school data:', err))
+      .catch(err => {
+        setError('Failed to load school data')
+        console.error('Error loading school data:', err)
+      })
   }, [school])
 
   useEffect(() => {
@@ -108,6 +112,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setUserStats(data.stats)
       } catch (error) {
+        setError('Failed to load user stats')
         console.error('Error loading user stats:', error)
       }
     }
@@ -119,6 +124,7 @@ export default function DashboardPage() {
         const data = await response.json()
         setRecentChats(data.chats)
       } catch (error) {
+        setError('Failed to load recent chats')
         console.error('Error loading recent chats:', error)
       }
     }
@@ -172,12 +178,12 @@ export default function DashboardPage() {
     )
   }
 
-  if (!settings) {
+  if (error || !settings) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading School Resources</h1>
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600 mx-auto"></div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
+          <p className="text-gray-600">{error || 'Failed to load settings'}</p>
         </div>
       </div>
     )
@@ -525,5 +531,19 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function GetHelpPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600" />
+        </div>
+      }
+    >
+      <GetHelpContent />
+    </Suspense>
   )
 } 

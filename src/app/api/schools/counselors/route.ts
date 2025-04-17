@@ -1,34 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { NextResponse } from 'next/server'
+import parkwaySouth from '@/data/schools/parkway-south.json'
+import parkwayWest from '@/data/schools/parkway-west.json'
+import parkwayCentral from '@/data/schools/parkway-central.json'
 
-export async function GET(request: NextRequest) {
+export const dynamic = 'force-dynamic'
+
+const schools = {
+  'parkway-south': parkwaySouth,
+  'parkway-west': parkwayWest,
+  'parkway-central': parkwayCentral
+}
+
+export async function GET(request: Request) {
   try {
-    // Get school from query params
-    const school = request.nextUrl.searchParams.get('school')
-    if (!school) {
-      return NextResponse.json({ error: 'School parameter is required' }, { status: 400 })
+    const url = new URL(request.url)
+    const school = url.pathname.split('/').pop()
+
+    if (!school || !schools[school as keyof typeof schools]) {
+      return NextResponse.json(
+        { error: 'School not found' },
+        { status: 404 }
+      )
     }
 
-    // Read accounts.json
-    const accountsPath = path.join(process.cwd(), 'src/data/accounts.json')
-    const accountsData = await fs.readFile(accountsPath, 'utf-8')
-    const accounts = JSON.parse(accountsData)
-
-    // Filter counselors for the specific school
-    const counselors = accounts.users
-      .filter((user: any) => 
-        user.role === 'counselor' && 
-        user.school === school
-      )
-      .map((counselor: any) => ({
-        name: counselor.name,
-        email: counselor.email,
-        title: counselor.title || 'School Counselor',
-        availability: counselor.availability || []
-      }))
-
-    return NextResponse.json({ counselors })
+    const schoolData = schools[school as keyof typeof schools]
+    return NextResponse.json({ counselors: schoolData.counselors })
   } catch (error) {
     console.error('Error fetching counselors:', error)
     return NextResponse.json(
