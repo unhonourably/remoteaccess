@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import LoginForm from '@/components/LoginForm'
-import { SchoolSettings } from '@/types'
+import { SchoolSettings, Counselor } from '@/types'
 import Link from 'next/link'
 import ChatInterface from '@/components/Chat/ChatInterface'
 
@@ -51,12 +51,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth()
   const [settings, setSettings] = useState<SchoolSettings | null>(null)
   const [activeSection, setActiveSection] = useState('resources')
-  const [selectedCounselor, setSelectedCounselor] = useState<null | {
-    name: string
-    email: string
-    title: string
-    availability?: string[]
-  }>(null)
+  const [selectedCounselor, setSelectedCounselor] = useState<Counselor | null>(null)
   const [userStats, setUserStats] = useState<UserStats>({
     activeChats: 0,
     recentSessions: 0,
@@ -66,6 +61,15 @@ export default function DashboardPage() {
   const [recentChats, setRecentChats] = useState<RecentChat[]>([])
   
   const school = searchParams.get('school')
+
+  // Redirect if user tries to access a different school's page
+  useEffect(() => {
+    if (!loading && user && school) {
+      if (user.school !== school) {
+        window.location.href = `/get-help?school=${encodeURIComponent(user.school)}`
+      }
+    }
+  }, [user, school, loading])
   
   useEffect(() => {
     if (!school) return
@@ -73,8 +77,25 @@ export default function DashboardPage() {
     // Load school settings from JSON file
     fetch(`/api/schools/${school.toLowerCase().replace(' ', '-')}.json`)
       .then(res => res.json())
-      .then(data => setSettings(data))
-      .catch(err => console.error('Error loading school settings:', err))
+      .then(data => {
+        // Remove counselors from settings as we'll fetch them separately
+        const { counselors, ...rest } = data
+        setSettings(rest)
+        
+        // Fetch counselors from accounts.json through API
+        return fetch(`/api/schools/counselors?school=${encodeURIComponent(school)}`)
+      })
+      .then(res => res.json())
+      .then(data => {
+        setSettings(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            counselors: data.counselors
+          }
+        })
+      })
+      .catch(err => console.error('Error loading school data:', err))
   }, [school])
 
   useEffect(() => {
@@ -116,11 +137,15 @@ export default function DashboardPage() {
   }, [user])
 
   if (!school) {
+    if (!loading && user) {
+      window.location.href = `/get-help?school=${encodeURIComponent(user.school)}`
+      return null
+    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">School Not Found</h1>
-          <p className="text-gray-600">Please select your school from the home page.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading School Information</h1>
+          <p className="text-gray-600">Please wait while we redirect you to your school's support page.</p>
         </div>
       </div>
     )
@@ -158,7 +183,7 @@ export default function DashboardPage() {
     )
   }
 
-  const handleStartChat = (counselor: { name: string; email: string; title: string; availability?: string[] }) => {
+  const handleStartChat = (counselor: Counselor) => {
     setSelectedCounselor(counselor)
     setActiveSection('chat')
   }
@@ -167,9 +192,16 @@ export default function DashboardPage() {
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-lg flex flex-col">
-        {/* School Name */}
-        <div className="px-4 h-12 flex items-center border-b border-gray-100 font-medium text-gray-900">
-          {settings.name}
+        {/* School Logo and Name */}
+        <div className="p-4 border-b border-gray-100">
+          <img 
+            src={`/${school?.toLowerCase().split(' ')[1]}.${school?.toLowerCase().includes('south') ? 'jpg' : 'png'}`}
+            alt={`${settings.name} logo`}
+            className="h-16 w-auto mx-auto mb-2 object-contain"
+          />
+          <div className="text-center font-medium text-gray-900">
+            {settings.name}
+          </div>
         </div>
 
         {/* Navigation */}
@@ -217,7 +249,7 @@ export default function DashboardPage() {
               <div className="mt-2 space-y-1">
                 {recentChats.map((chat) => {
                   // Find the full counselor details from settings
-                  const counselor = settings.counselors.find(c => c.email === chat.counselorEmail)
+                  const counselor = settings?.counselors?.find(c => c.email === chat.counselorEmail)
                   if (!counselor) return null
 
                   return (
@@ -381,7 +413,7 @@ export default function DashboardPage() {
                 {recentChats.length > 0 ? (
                   <div className="grid gap-4">
                     {recentChats.map((chat) => {
-                      const counselor = settings.counselors.find(c => c.email === chat.counselorEmail)
+                      const counselor = settings?.counselors?.find(c => c.email === chat.counselorEmail)
                       if (!counselor) return null
 
                       return (

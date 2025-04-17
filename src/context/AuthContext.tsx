@@ -30,7 +30,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user data exists in localStorage
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
-      setUser(JSON.parse(storedUser))
+      const parsedUser = JSON.parse(storedUser)
+      // Get fresh user data from accounts.json
+      const freshUserData = accounts.users.find(u => u.email === parsedUser.email)
+      if (freshUserData) {
+        const { password: _, ...userWithoutPassword } = freshUserData
+        const updatedUser: User = {
+          ...userWithoutPassword,
+          school: userWithoutPassword.school as SchoolName,
+          role: userWithoutPassword.role as UserRole,
+          lastLogin: parsedUser.lastLogin
+        }
+        setUser(updatedUser)
+        localStorage.setItem('user', JSON.stringify(updatedUser))
+      } else {
+        // If user no longer exists in accounts.json, log them out
+        setUser(null)
+        localStorage.removeItem('user')
+      }
     }
     setLoading(false)
   }, [])

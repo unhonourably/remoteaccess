@@ -1,0 +1,26 @@
+{
+  "name": "Parkway West",
+  "primaryColor": "#2F855A",
+  "resources": [
+    {
+      "title": "Mental Health Support",
+      "link": "/resources/mental-health",
+      "description": "Access counseling services, crisis support, and mental health resources available to all Parkway West students."
+    },
+    {
+      "title": "Academic Support",
+      "link": "/resources/academic",
+      "description": "Get help with coursework, study skills, and academic planning from our dedicated team."
+    },
+    {
+      "title": "Bullying Prevention",
+      "link": "/resources/bullying",
+      "description": "Learn about our anti-bullying programs and how to report incidents confidentially."
+    },
+    {
+      "title": "College & Career Planning",
+      "link": "/resources/college-career",
+      "description": "Explore college preparation resources, career guidance, and scholarship opportunities."
+    }
+  ]
+} 

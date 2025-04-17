@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { SchoolName } from '@/types'
 
 export default function RequestCounselorPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [school, setSchool] = useState<SchoolName>('Parkway North')
@@ -15,12 +15,14 @@ export default function RequestCounselorPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login')
-    } else if (user.role === 'counselor') {
-      router.push('/dashboard')
+    if (!authLoading) {  // Only check after auth state is loaded
+      if (!user) {
+        router.push('/login')
+      } else if (user.role === 'counselor') {
+        router.push('/dashboard')
+      }
     }
-  }, [user, router])
+  }, [user, router, authLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

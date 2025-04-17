@@ -42,6 +42,7 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isTyping, setIsTyping] = useState(false)
   const pollInterval = useRef<NodeJS.Timeout>()
+  const lastMessageTimestamp = useRef<string>('')
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -60,10 +61,30 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
 
     const loadMessages = async () => {
       try {
-        const response = await fetch(`/api/chat?userId=${chatUserId}&counselorEmail=${counselor.email}`)
+        const params = new URLSearchParams({
+          userId: chatUserId,
+          counselorEmail: counselor.email
+        })
+
+        const response = await fetch(`/api/chat?${params}`)
         const data: ChatResponse = await response.json()
+        
         if (data.chats && data.chats.length > 0) {
-          setMessages(data.chats[0].messages)
+          const newMessages = data.chats[0].messages
+          
+          // Update messages, ensuring proper order
+          setMessages(prevMessages => {
+            const messageMap = new Map([...prevMessages, ...newMessages].map(msg => [msg.id, msg]))
+            return Array.from(messageMap.values()).sort((a, b) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            )
+          })
+
+          // Update last message timestamp for next poll if we have messages
+          if (newMessages.length > 0) {
+            const timestamps = newMessages.map(msg => new Date(msg.timestamp).getTime())
+            lastMessageTimestamp.current = new Date(Math.max(...timestamps)).toISOString()
+          }
         }
       } catch (error) {
         console.error('Error loading messages:', error)
@@ -72,10 +93,11 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
       }
     }
 
+    // Initial load
     loadMessages()
 
     // Set up polling for new messages
-    pollInterval.current = setInterval(loadMessages, 3000)
+    pollInterval.current = setInterval(loadMessages, 1000)
 
     return () => {
       if (pollInterval.current) {
@@ -91,6 +113,9 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
     const chatUserId = isCounselor ? userId : user.id
     if (!chatUserId) return
 
+    const messageToSend = newMessage.trim()
+    setNewMessage('')
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -100,7 +125,7 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
         body: JSON.stringify({
           userId: chatUserId,
           counselorEmail: counselor.email,
-          message: newMessage,
+          message: messageToSend,
           isUser: !isCounselor
         }),
       })
@@ -109,11 +134,24 @@ export default function ChatInterface({ counselor, userId, isCounselor, onClose 
         throw new Error('Failed to send message')
       }
 
-      setNewMessage('')
+      const data = await response.json()
+      
+      // Add the new message to the UI
+      setMessages(prev => {
+        const newMessages = [...prev, data.message]
+        return newMessages.sort((a, b) => 
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        )
+      })
+      
+      // Update last message timestamp
+      lastMessageTimestamp.current = data.message.timestamp
+      
       setIsTyping(true)
       setTimeout(() => setIsTyping(false), 2000)
     } catch (error) {
       console.error('Error sending message:', error)
+      alert('Failed to send message. Please try again.')
     }
   }
 

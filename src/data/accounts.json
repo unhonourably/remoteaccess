@@ -16,7 +16,7 @@
       "email": "jcounselor@parkwayschools.net",
       "password": "counselor123",
       "name": "Jane Counselor",
-      "school": "Parkway South",
+      "school": "Parkway North",
       "role": "counselor",
       "createdAt": "2024-01-01T00:00:00.000Z",
       "lastLogin": "2024-03-19T00:00:00.000Z",
@@ -28,7 +28,7 @@
       "password": "test",
       "name": "Amare Carey",
       "school": "Parkway North",
-      "role": "student",
+      "role": "counselor",
       "createdAt": "2025-04-16T18:19:56.265Z",
       "lastLogin": "2025-04-16T18:19:56.265Z",
       "bio": "this is a test edit"

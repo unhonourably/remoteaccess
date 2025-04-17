@@ -14,29 +14,56 @@ async function initChatsFile() {
   }
 }
 
+async function readChatsFile() {
+  await initChatsFile()
+  const chatsData = await fs.readFile(CHATS_FILE, 'utf-8')
+  return JSON.parse(chatsData)
+}
+
+async function writeChatsFile(data: any) {
+  await fs.writeFile(CHATS_FILE, JSON.stringify(data, null, 2))
+}
+
 // GET /api/chat
 export async function GET(request: Request) {
-  await initChatsFile()
   const { searchParams } = new URL(request.url)
   const userId = searchParams.get('userId')
   const counselorEmail = searchParams.get('counselorEmail')
+  const since = searchParams.get('since')
 
   if (!userId || !counselorEmail) {
     return NextResponse.json({ error: 'User ID and counselor email are required' }, { status: 400 })
   }
 
-  const chatsData = await fs.readFile(CHATS_FILE, 'utf-8')
-  const { chats } = JSON.parse(chatsData)
-  const userChats = chats.filter((chat: any) => 
+  const { chats } = await readChatsFile()
+  
+  // Find the specific chat thread between this user and counselor
+  const chat = chats.find((chat: any) => 
     chat.userId === userId && chat.counselorEmail === counselorEmail
   )
 
-  return NextResponse.json({ chats: userChats })
+  if (!chat) {
+    return NextResponse.json({ chats: [] })
+  }
+
+  let messages = chat.messages
+
+  if (since) {
+    const sinceDate = new Date(since)
+    messages = messages.filter((msg: any) => new Date(msg.timestamp) > sinceDate)
+  }
+
+  return NextResponse.json({ 
+    chats: [{
+      userId,
+      counselorEmail,
+      messages: messages
+    }]
+  })
 }
 
 // POST /api/chat
 export async function POST(request: Request) {
-  await initChatsFile()
   const body = await request.json()
   const { userId, counselorEmail, message, isUser } = body
 
@@ -44,11 +71,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'User ID, counselor email, and message are required' }, { status: 400 })
   }
 
-  const chatsData = await fs.readFile(CHATS_FILE, 'utf-8')
-  const data = JSON.parse(chatsData)
+  const data = await readChatsFile()
   
   const newMessage = {
-    id: Date.now().toString(),
+    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     userId,
     counselorEmail,
     content: message,
@@ -56,21 +82,25 @@ export async function POST(request: Request) {
     isUser: isUser ?? true
   }
 
-  // Find user's chat with specific counselor or create new one
-  const chatIndex = data.chats.findIndex((chat: any) => 
+  // Find or create the chat thread
+  let chat = data.chats.find((chat: any) => 
     chat.userId === userId && chat.counselorEmail === counselorEmail
   )
   
-  if (chatIndex === -1) {
-    data.chats.push({
+  if (!chat) {
+    chat = {
       userId,
       counselorEmail,
-      messages: [newMessage]
-    })
-  } else {
-    data.chats[chatIndex].messages.push(newMessage)
+      messages: []
+    }
+    data.chats.push(chat)
   }
 
-  await fs.writeFile(CHATS_FILE, JSON.stringify(data, null, 2))
+  chat.messages.push(newMessage)
+  chat.messages.sort((a: any, b: any) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  )
+
+  await writeChatsFile(data)
   return NextResponse.json({ message: newMessage })
 } 

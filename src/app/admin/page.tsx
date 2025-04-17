@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import { SchoolName } from '@/types'
 
 interface CounselorRequest {
@@ -19,7 +20,13 @@ interface CounselorRequest {
 export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('adminAuthenticated') === 'true'
+    }
+    return false
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [activeSection, setActiveSection] = useState('accounts')
   const [accounts, setAccounts] = useState<any[]>([])
@@ -76,12 +83,18 @@ export default function AdminPage() {
       }
 
       setIsAuthenticated(true)
+      localStorage.setItem('adminAuthenticated', 'true')
       loadAccounts()
     } catch (err) {
       setError('Invalid password')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    localStorage.removeItem('adminAuthenticated')
   }
 
   const loadAccounts = async () => {
@@ -172,7 +185,9 @@ export default function AdminPage() {
             name: editingAccount.name,
             email: editingAccount.email,
             password: editingAccount.password,
-            bio: editingAccount.bio
+            bio: editingAccount.bio,
+            role: editingAccount.role,
+            school: editingAccount.school
           }
         })
       })
@@ -182,9 +197,22 @@ export default function AdminPage() {
         throw new Error(data.error || 'Failed to update account')
       }
 
+      // Update the accounts list locally instead of reloading
+      setAccounts(accounts.map(account => 
+        account.email === editingAccount.originalEmail 
+          ? {
+              ...account,
+              name: editingAccount.name,
+              email: editingAccount.email,
+              bio: editingAccount.bio,
+              role: editingAccount.role,
+              school: editingAccount.school
+            }
+          : account
+      ))
+
       setShowEditModal(false)
       setEditingAccount(null)
-      loadAccounts()
     } catch (err: any) {
       console.error('Error updating account:', err)
       alert(err.message)
@@ -248,8 +276,11 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (isAuthenticated && activeSection === 'counselors') {
-      loadCounselorRequests()
+    if (isAuthenticated) {
+      loadAccounts()
+      if (activeSection === 'counselors') {
+        loadCounselorRequests()
+      }
     }
   }, [isAuthenticated, activeSection])
 
@@ -301,12 +332,12 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="px-4 h-16 flex items-center border-b border-gray-100">
+      <div className="w-72 bg-white shadow-lg flex flex-col">
+        <div className="px-6 h-20 flex items-center border-b border-gray-100">
           <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-6 space-y-2">
           {[
             { id: 'accounts', label: 'Manage Accounts' },
             { id: 'counselors', label: 'Counselors' },
@@ -315,7 +346,7 @@ export default function AdminPage() {
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors
                 ${activeSection === item.id 
                   ? 'bg-red-50 text-red-600' 
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -327,10 +358,10 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-6 border-t border-gray-100">
           <button
-            onClick={() => setIsAuthenticated(false)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -341,14 +372,14 @@ export default function AdminPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-10">
         {activeSection === 'accounts' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Manage Accounts</h2>
               <button
                 onClick={() => setShowNewAccountModal(true)}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="px-6 py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
               >
                 Add New Account
               </button>
@@ -541,6 +572,32 @@ export default function AdminPage() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700">Role</label>
+                      <select
+                        value={editingAccount.role}
+                        onChange={(e) => setEditingAccount({ ...editingAccount, role: e.target.value })}
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                      >
+                        <option value="student">Student</option>
+                        <option value="counselor">Counselor</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">School</label>
+                      <select
+                        value={editingAccount.school}
+                        onChange={(e) => setEditingAccount({ ...editingAccount, school: e.target.value })}
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                      >
+                        <option value="Parkway North">Parkway North</option>
+                        <option value="Parkway South">Parkway South</option>
+                        <option value="Parkway West">Parkway West</option>
+                        <option value="Parkway Central">Parkway Central</option>
+                      </select>
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700">Bio</label>
                       <textarea
                         value={editingAccount.bio || ''}
@@ -662,87 +719,84 @@ export default function AdminPage() {
 
         {activeSection === 'counselors' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Manage Counselors</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Counselor Requests</h2>
             
             <div className="bg-white shadow-sm rounded-lg">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        School
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reason
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {counselorRequests.map((request) => (
-                      <tr key={request.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {request.name}
+                    {requestsLoading ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+                            <span className="ml-2">Loading requests...</span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {request.email}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">
-                            {request.school}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-500 max-w-xs overflow-hidden text-ellipsis">
-                            {request.reason}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            request.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : request.status === 'approved'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {request.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          {request.status === 'pending' && (
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleRequestAction(request.id, 'approved')}
-                                className="text-green-600 hover:text-green-900"
-                              >
-                                Approve
-                              </button>
-                              <button
-                                onClick={() => handleRequestAction(request.id, 'rejected')}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
                         </td>
                       </tr>
-                    ))}
+                    ) : counselorRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                          No counselor requests found
+                        </td>
+                      </tr>
+                    ) : (
+                      counselorRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{request.name}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">{request.email}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-500">{request.school}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-500 max-w-xs overflow-hidden text-ellipsis">{request.reason}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              request.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : request.status === 'approved'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {request.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            {request.status === 'pending' && (
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleRequestAction(request.id, 'approved')}
+                                  className="text-green-600 hover:text-green-900"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleRequestAction(request.id, 'rejected')}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
