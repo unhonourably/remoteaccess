@@ -26,7 +26,7 @@ export default function Footer() {
           </Link>
           <span>•</span>
           <Link 
-            href="/counselor-portal" 
+            href="/counselor-portal"
             className="text-red-600 hover:text-red-700 transition-colors font-medium"
           >
             Counselor Portal
