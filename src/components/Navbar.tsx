@@ -3,85 +3,69 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAuth } from '@/context/AuthContext'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const { user } = useAuth()
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 20
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const isScrolled = window.scrollY > 20
+          if (isScrolled !== scrolled) {
+            setScrolled(isScrolled)
+          }
+          ticking = false
+        })
+        ticking = true
       }
     }
 
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [scrolled])
 
   return (
-    <div className="fixed left-1/2 -translate-x-1/2 top-4 z-50">
-      <div className={`
-        ${scrolled 
-          ? 'bg-[#2B2D31]/95 shadow-lg' 
-          : 'bg-[#2B2D31]/90'
-        }
-        flex items-center gap-3 px-4 h-12 rounded-lg transition-all duration-300 ease-in-out backdrop-blur-sm
-      `}>
-        {/* Logo */}
-        <Link href="/" className="flex items-center">
-          <Image
-            src="/bigparkway.png"
-            alt="Parkway Schools"
-            width={120}
-            height={32}
-            className="transition-all duration-300"
-          />
-        </Link>
-
-        {/* Divider */}
-        <div className="h-6 w-px bg-gray-600/50"></div>
-
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center gap-3">
-          <NavLink href="/get-help">Get Help</NavLink>
-          <NavLink href="/resources">Resources</NavLink>
-          <NavLink href="/contact">Contact</NavLink>
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1"></div>
-
-        {/* User Menu */}
-        <div className="hidden md:flex items-center gap-3">
-          {user ? (
-            <>
-              <NavLink href="/profile">Profile</NavLink>
-              <div className="h-6 w-px bg-gray-600/50"></div>
-            </>
-          ) : (
-            <>
-              <NavLink href="/login">Login</NavLink>
-              <div className="h-6 w-px bg-gray-600/50"></div>
-            </>
-          )}
-          <Link 
-            href="/emergency" 
-            className="px-3 py-1.5 bg-red-500/10 text-red-500 text-sm rounded-md font-medium hover:bg-red-500/20 transition-colors"
+    <div className="fixed left-1/2 -translate-x-1/2 top-4 z-50 w-full max-w-3xl px-4 flex justify-center pointer-events-none">
+      <Link 
+        href="https://www.youtube.com/@Slashestt" 
+        className="flex items-center gap-2 h-full justify-center pointer-events-auto"
+      >
+        <div className="flex justify-center items-center flex-shrink-0 h-full">
+          <div 
+            className={`
+              relative drop-shadow-lg
+              ${scrolled ? 'scale-110' : 'scale-100'}
+            `}
+            style={{
+              width: '36px',
+              height: '36px',
+              transition: 'transform 700ms ease-out',
+              willChange: 'transform'
+            }}
           >
-            Emergency
-          </Link>
+            <Image
+              src="/slashestpfp.jpg"
+              alt="slashest"
+              fill
+              className="rounded-full border-2 border-[#00ff66]/50 object-cover"
+            />
+          </div>
         </div>
-
-        {/* Mobile Menu Button */}
-        <button className="md:hidden">
-          <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
+        <span 
+          className={`
+            text-white text-lg font-medium overflow-hidden whitespace-nowrap transition-all duration-700 ease-out drop-shadow-lg
+            ${scrolled ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-1'}
+          `}
+          style={{
+            transitionProperty: 'max-width, opacity, margin',
+            willChange: 'max-width, opacity, margin-left'
+          }}
+        >
+          slash<span className="text-[#00ff66]">est</span>
+        </span>
+      </Link>
     </div>
   )
 }
@@ -90,7 +74,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link 
       href={href} 
-      className="text-gray-300/90 hover:text-white text-sm font-medium transition-colors"
+      className="text-gray-400 hover:text-[#00ff66] text-sm font-medium transition-colors"
     >
       {children}
     </Link>

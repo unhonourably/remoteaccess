@@ -3,7 +3,6 @@ import "./globals.css";
 import { Outfit, Manrope } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Providers from "@/components/Providers";
 
 const outfit = Outfit({ 
   subsets: ['latin'],
@@ -20,8 +19,14 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Parkway Digital Help Center",
-  description: "A safe space for Parkway students to find help and support.",
+  title: "slashest",
+  description: "I make videos on Discord :p",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/slashestpfp.jpg', type: 'image/jpeg' }
+    ],
+  }
 };
 
 export default function RootLayout({
@@ -32,18 +37,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${manrope.variable}`}>
       <head>
-        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="icon" href="/slashestpfp.jpg" type="image/jpeg" />
       </head>
-      <body className="bg-white">
-        <Providers>
-          <Navbar />
-          <div className="min-h-screen flex flex-col">
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </Providers>
+      <body className="bg-[#111111] text-white">
+        <Navbar />
+        <div className="min-h-screen flex flex-col">
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
