@@ -6,6 +6,10 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
         <div className="flex items-center gap-4">
           <span>© {new Date().getFullYear()} slash<span className="text-[#00ff66]">est</span></span>
+          <span>•</span>
+          <Link href="mailto:SlashestBusiness@gmail.com" className="hover:text-[#00ff66] transition-colors">
+            SlashestBusiness@gmail.com
+          </Link>
         </div>
         
         <div className="flex items-center gap-4">
