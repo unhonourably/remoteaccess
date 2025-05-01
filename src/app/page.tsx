@@ -3,6 +3,9 @@
 import Image from 'next/image'
 import RecentVideos from '@/components/RecentVideos'
 import FanArtCarousel from '@/components/FanArtCarousel'
+import MusicCarousel from '@/components/MusicCarousel'
+import ProjectsShowcase from '@/components/ProjectsShowcase'
+import SpotifyEmbed from '@/components/SpotifyEmbed'
 import PromoNotification from '@/components/PromoNotification'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -38,20 +41,35 @@ export default function Home() {
           <h1 className="mt-10 text-5xl font-bold text-white opacity-0 animate-hero-fade-in" style={{ animationDelay: '800ms' }}>
             slash<span className="text-[#00ff66]">est</span>
           </h1>
-          <p className="mt-4 text-gray-400 text-lg opacity-0 animate-hero-fade-in" style={{ animationDelay: '1000ms' }}>Content Creator on Discord</p>
+          <p className="mt-4 text-gray-400 text-lg opacity-0 animate-hero-fade-in" style={{ animationDelay: '1000ms' }}>Discord Content Creator</p>
           
-          <div className="flex gap-4 mt-8 opacity-0 animate-hero-fade-in" style={{ animationDelay: '1200ms' }}>
+          <div className="flex flex-wrap justify-center gap-4 mt-8 opacity-0 animate-hero-fade-in" style={{ animationDelay: '1200ms' }}>
             <Link href="https://discord.gg/slashest" className="px-6 py-2 bg-[#00ff66] text-black font-medium rounded-full hover:bg-[#00ff66]/80 transition-all transform hover:scale-105 flex items-center gap-2" target="_blank" rel="noopener noreferrer">
               Join Discord
             </Link>
             <Link href="https://www.youtube.com/@Slashestt" className="px-6 py-2 bg-transparent border border-[#00ff66] text-[#00ff66] font-medium rounded-full hover:bg-[#00ff66]/10 transition-all transform hover:scale-105" target="_blank" rel="noopener noreferrer">
               YouTube
             </Link>
+            <Link href="https://twitter.com/slashestt" className="px-6 py-2 bg-transparent border border-[#00ff66] text-[#00ff66] font-medium rounded-full hover:bg-[#00ff66]/10 transition-all transform hover:scale-105" target="_blank" rel="noopener noreferrer">
+              Twitter
+            </Link>
+            <Link href="https://open.spotify.com/artist/0E3BXt4J29Gj8I7R0ZSfpP?si=vqWlDkfKQXaPLu6X6y5p7Q" className="px-6 py-2 bg-transparent border border-[#00ff66] text-[#00ff66] font-medium rounded-full hover:bg-[#00ff66]/10 transition-all transform hover:scale-105" target="_blank" rel="noopener noreferrer">
+              Spotify
+            </Link>
+            <Link href="https://gamersupps.gg/slashest" className="px-6 py-2 bg-transparent border border-[#00ff66] text-[#00ff66] font-medium rounded-full hover:bg-[#00ff66]/10 transition-all transform hover:scale-105" target="_blank" rel="noopener noreferrer">
+              GamerSupps
+            </Link>
+            <Link href="mailto:slashest@kaizentalent.co" className="px-6 py-2 bg-transparent border border-[#00ff66] text-[#00ff66] font-medium rounded-full hover:bg-[#00ff66]/10 transition-all transform hover:scale-105">
+              Business Email
+            </Link>
           </div>
         </div>
       </div>
 
+      <ProjectsShowcase />
+      <SpotifyEmbed />
       <RecentVideos />
+      <MusicCarousel />
       <FanArtCarousel />
       <PromoNotification />
     </main>
