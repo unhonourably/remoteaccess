@@ -34,9 +34,9 @@ export const metadata: Metadata = {
     siteName: "slashest",
     images: [
       {
-        url: "/discordss.png",
-        width: 400,
-        height: 400,
+        url: "/slashestpfp.jpg",
+        width: 120,
+        height: 120,
         alt: "slashest",
       },
     ],
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "slashest",
     description: "Discord Content Creator",
     creator: "@Slashestt",
-    images: ["/discordss.png"],
+    images: ["/slashestpfp.jpg"],
   },
   other: {
     "theme-color": "#00ff66",
@@ -65,10 +65,13 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${manrope.variable}`}>
       <head>
         <link rel="icon" href="/slashestpfp.jpg" type="image/jpeg" />
-        <meta property="og:image:width" content="400" />
-        <meta property="og:image:height" content="400" />
+        <meta property="og:image:width" content="120" />
+        <meta property="og:image:height" content="120" />
         <meta property="og:image" content="https://slashest.com/slashestpfp.jpg" />
+        <meta property="og:image:alt" content="slashest" />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta name="twitter:image" content="https://slashest.com/slashestpfp.jpg" />
+        <meta name="twitter:image:alt" content="slashest" />
       </head>
       <body className="bg-[#111111] text-white">
         <Navbar />
