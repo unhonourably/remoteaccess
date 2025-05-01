@@ -20,13 +20,35 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "slashest",
-  description: "I make videos on Discord :p",
+  description: "Discord Content Creator",
   icons: {
     icon: [
       { url: '/favicon.ico' },
       { url: '/slashestpfp.jpg', type: 'image/jpeg' }
     ],
-  }
+  },
+  openGraph: {
+    title: "slashest",
+    description: "Discord Content Creator",
+    url: "https://slashest.com",
+    siteName: "slashest",
+    images: [
+      {
+        url: "/slashestpfp.jpg",
+        width: 1200,
+        height: 630,
+        alt: "slashest",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "slashest",
+    description: "Discord Content Creator",
+    images: ["/slashestpfp.jpg"],
+  },
 };
 
 export default function RootLayout({
