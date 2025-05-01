@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: "slashest",
     images: [
       {
-        url: "/slashestpfp.jpg",
+        url: "/discordss.png",
         width: 400,
         height: 400,
         alt: "slashest",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: "slashest",
     description: "Discord Content Creator",
     creator: "@Slashestt",
-    images: ["/slashestpfp.jpg"],
+    images: ["/discordss.png"],
   },
   other: {
     "theme-color": "#00ff66",
