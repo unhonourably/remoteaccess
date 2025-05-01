@@ -109,7 +109,7 @@ export default function MusicCarousel() {
         }`}
       >
         <h2 className="text-3xl font-bold text-white mb-8">
-          My <span className="text-[#00ff66]">Channels</span>
+          All <span className="text-[#00ff66]">Channels</span>
         </h2>
         
         <div className="relative">

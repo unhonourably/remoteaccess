@@ -25,7 +25,7 @@ export default function SpotifyEmbed() {
         }`}
       >
         <h2 className="text-4xl font-bold text-white mb-12 text-center">
-          My <span className="text-[#00ff66]">Music</span>
+          Music <span className="text-[#00ff66]">Projects</span>
         </h2>
         
         <div className="relative rounded-2xl overflow-hidden">
