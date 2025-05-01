@@ -65,13 +65,10 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${manrope.variable}`}>
       <head>
         <link rel="icon" href="/slashestpfp.jpg" type="image/jpeg" />
-        <meta property="og:image:width" content="120" />
-        <meta property="og:image:height" content="120" />
+        <meta property="og:image:width" content="400" />
+        <meta property="og:image:height" content="400" />
         <meta property="og:image" content="https://slashest.com/slashestpfp.jpg" />
-        <meta property="og:image:alt" content="slashest" />
-        <meta property="og:image:type" content="image/jpeg" />
         <meta name="twitter:image" content="https://slashest.com/slashestpfp.jpg" />
-        <meta name="twitter:image:alt" content="slashest" />
       </head>
       <body className="bg-[#111111] text-white">
         <Navbar />
