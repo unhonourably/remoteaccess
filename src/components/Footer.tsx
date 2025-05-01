@@ -13,6 +13,10 @@ export default function Footer() {
             Discord
           </Link>
           <span>•</span>
+          <Link href="https://open.spotify.com/artist/0E3BXt4J29Gj8I7R0ZSfpP?si=W53dvk6aSwmbVMUBXNaliA" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
+            Spotify
+          </Link>
+          <span>•</span>
           <Link href="https://www.youtube.com/@Slashestt" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
             YouTube
           </Link>
