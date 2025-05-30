@@ -1,35 +1,17 @@
-import Link from 'next/link'
-
 export default function Footer() {
   return (
-    <footer className="w-full py-4 border-t border-[#333333] bg-[#111111]">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-        <div className="flex items-center gap-4">
-          <span>© {new Date().getFullYear()} slash<span className="text-[#00ff66]">est</span></span>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <Link href="https://discord.gg/slashest" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
-            Discord
-          </Link>
-          <span>•</span>
-          <Link href="https://open.spotify.com/artist/0E3BXt4J29Gj8I7R0ZSfpP?si=W53dvk6aSwmbVMUBXNaliA" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
-            Spotify
-          </Link>
-          <span>•</span>
-          <Link href="https://www.youtube.com/@Slashestt" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
-            YouTube
-          </Link>
-          <span>•</span>
-          <Link href="https://x.com/Slashestt" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
-            Twitter
-          </Link>
-          <span>•</span>
-          <Link href="https://gamersupps.gg/?ref=slashest" className="hover:text-[#00ff66] transition-colors" target="_blank" rel="noopener noreferrer">
-            GamerSupps
-          </Link>
-        </div>
-      </div>
+    <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
+        © kuro's template
+      </p>
+      <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+        <a className="text-xs hover:underline underline-offset-4" href="#">
+          Terms of Service
+        </a>
+        <a className="text-xs hover:underline underline-offset-4" href="#">
+          Privacy
+        </a>
+      </nav>
     </footer>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 
 export default function Navbar() {
@@ -28,10 +27,7 @@ export default function Navbar() {
 
   return (
     <div className="fixed left-1/2 -translate-x-1/2 top-4 z-50 w-full max-w-3xl px-4 flex justify-center pointer-events-none">
-      <Link 
-        href="https://www.youtube.com/@Slashestt" 
-        className="flex items-center gap-2 h-full justify-center pointer-events-auto"
-      >
+      <div className="flex items-center gap-2 h-full justify-center pointer-events-auto">
         <div className="flex justify-center items-center flex-shrink-0 h-full">
           <div 
             className={`
@@ -45,17 +41,11 @@ export default function Navbar() {
               willChange: 'transform'
             }}
           >
-            <Image
-              src="/slashestpfp.jpg"
-              alt="slashest"
-              fill
-              className="rounded-full border-2 border-[#00ff66]/50 object-cover"
-            />
           </div>
         </div>
         <span 
           className={`
-            text-white text-lg font-medium overflow-hidden whitespace-nowrap transition-all duration-700 ease-out drop-shadow-lg
+            text-lg font-medium overflow-hidden whitespace-nowrap transition-all duration-700 ease-out drop-shadow-lg
             ${scrolled ? 'max-w-0 opacity-0 ml-0' : 'max-w-[200px] opacity-100 ml-1'}
           `}
           style={{
@@ -63,9 +53,8 @@ export default function Navbar() {
             willChange: 'max-width, opacity, margin-left'
           }}
         >
-          slash<span className="text-[#00ff66]">est</span>
         </span>
-      </Link>
+      </div>
     </div>
   )
 }
