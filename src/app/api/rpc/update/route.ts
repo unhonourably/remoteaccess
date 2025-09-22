@@ -49,8 +49,9 @@ export async function POST(request: NextRequest) {
           return { success: false, client: client.url, error: `HTTP ${response.status}` }
         }
       } catch (error) {
-        console.log(`[${new Date().toISOString()}] ❌ Webhook error: ${client.url} (${error.message})`)
-        return { success: false, client: client.url, error: error.message }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log(`[${new Date().toISOString()}] ❌ Webhook error: ${client.url} (${errorMessage})`)
+        return { success: false, client: client.url, error: errorMessage }
       }
     })
     
@@ -74,9 +75,10 @@ export async function POST(request: NextRequest) {
       webhookResults: results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'Promise rejected' })
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.log(`[${new Date().toISOString()}] ❌ API Error:`, error)
     return NextResponse.json(
-      { success: false, message: 'Failed to update Rich Presence', error: error.message },
+      { success: false, message: 'Failed to update Rich Presence', error: errorMessage },
       { status: 500 }
     )
   }
