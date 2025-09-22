@@ -17,12 +17,19 @@ let currentPresenceData: RichPresenceData = {
 let registeredClients: { url: string; lastSeen: Date }[] = []
 
 export async function POST(request: NextRequest) {
+  console.log(`[${new Date().toISOString()}] 📥 RPC Update request received`)
+  
   try {
     const data: RichPresenceData = await request.json()
+    console.log(`[${new Date().toISOString()}] 📝 RPC Data:`, JSON.stringify(data))
     
     currentPresenceData = data
     
-    const webhookPromises = registeredClients.map(async (client) => {
+    console.log(`[${new Date().toISOString()}] 📡 Sending webhooks to ${registeredClients.length} clients`)
+    
+    const webhookPromises = registeredClients.map(async (client, index) => {
+      console.log(`[${new Date().toISOString()}] 🔄 Sending webhook ${index + 1}/${registeredClients.length} to ${client.url}`)
+      
       try {
         const response = await fetch(`${client.url}/update`, {
           method: 'POST',
@@ -35,12 +42,15 @@ export async function POST(request: NextRequest) {
         
         if (response.ok) {
           client.lastSeen = new Date()
+          console.log(`[${new Date().toISOString()}] ✅ Webhook success: ${client.url}`)
           return { success: true, client: client.url }
         } else {
-          return { success: false, client: client.url, error: 'Request failed' }
+          console.log(`[${new Date().toISOString()}] ❌ Webhook failed: ${client.url} (Status: ${response.status})`)
+          return { success: false, client: client.url, error: `HTTP ${response.status}` }
         }
       } catch (error) {
-        return { success: false, client: client.url, error: 'Connection failed' }
+        console.log(`[${new Date().toISOString()}] ❌ Webhook error: ${client.url} (${error.message})`)
+        return { success: false, client: client.url, error: error.message }
       }
     })
     
@@ -54,15 +64,19 @@ export async function POST(request: NextRequest) {
       return timeDiff < 300000
     })
     
+    console.log(`[${new Date().toISOString()}] 📊 Update complete: ${successfulUpdates}/${registeredClients.length} clients notified`)
+    
     return NextResponse.json({
       success: true,
       message: `Rich Presence updated successfully`,
       clientsNotified: successfulUpdates,
-      totalClients: registeredClients.length
+      totalClients: registeredClients.length,
+      webhookResults: results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'Promise rejected' })
     })
   } catch (error) {
+    console.log(`[${new Date().toISOString()}] ❌ API Error:`, error)
     return NextResponse.json(
-      { success: false, message: 'Failed to update Rich Presence' },
+      { success: false, message: 'Failed to update Rich Presence', error: error.message },
       { status: 500 }
     )
   }
