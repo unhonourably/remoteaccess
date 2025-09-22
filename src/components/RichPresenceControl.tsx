@@ -4,9 +4,16 @@ import { useState, useEffect } from 'react'
 
 interface RichPresenceData {
   image: string
+  imageAltText: string
+  smallImage: string
+  smallImageAltText: string
   title: string
   line1: string
   line2: string
+  button1Text: string
+  button1Url: string
+  button2Text: string
+  button2Url: string
 }
 
 interface RichPresenceControlProps {
@@ -16,9 +23,16 @@ interface RichPresenceControlProps {
 export default function RichPresenceControl({ onLogout }: RichPresenceControlProps) {
   const [presenceData, setPresenceData] = useState<RichPresenceData>({
     image: '',
+    imageAltText: '',
+    smallImage: '',
+    smallImageAltText: '',
     title: '',
     line1: '',
-    line2: ''
+    line2: '',
+    button1Text: '',
+    button1Url: '',
+    button2Text: '',
+    button2Url: ''
   })
   const [isConnected, setIsConnected] = useState(false)
   const [status, setStatus] = useState('')
@@ -70,7 +84,19 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
 
       if (response.ok) {
         setStatus(`Rich Presence cleared! (${data.clientsNotified}/${data.totalClients} clients notified)`)
-        setPresenceData({ image: '', title: '', line1: '', line2: '' })
+        setPresenceData({ 
+          image: '', 
+          imageAltText: '',
+          smallImage: '',
+          smallImageAltText: '',
+          title: '', 
+          line1: '', 
+          line2: '',
+          button1Text: '',
+          button1Url: '',
+          button2Text: '',
+          button2Url: ''
+        })
       } else {
         setStatus('Failed to clear Rich Presence')
       }
@@ -145,13 +171,52 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                 <div className="space-y-4">
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2">
-                      Image URL
+                      Large Image URL
                     </label>
                     <input
                       type="url"
-                      placeholder="https://example.com/image.png"
+                      placeholder="https://example.com/large-image.png"
                       value={presenceData.image}
                       onChange={(e) => setPresenceData({...presenceData, image: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                      Large Image Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Alt text for large image"
+                      value={presenceData.imageAltText}
+                      onChange={(e) => setPresenceData({...presenceData, imageAltText: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                      Small Image URL
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/small-image.png"
+                      value={presenceData.smallImage}
+                      onChange={(e) => setPresenceData({...presenceData, smallImage: e.target.value})}
+                      className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                      Small Image Alt Text
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Alt text for small image"
+                      value={presenceData.smallImageAltText}
+                      onChange={(e) => setPresenceData({...presenceData, smallImageAltText: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -194,6 +259,64 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
+
+                  <div className="border-t border-white/20 pt-4 mt-6">
+                    <h3 className="text-lg font-medium text-white mb-4">Buttons (Optional)</h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                          Button 1 Text
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Visit Website"
+                          value={presenceData.button1Text}
+                          onChange={(e) => setPresenceData({...presenceData, button1Text: e.target.value})}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                          Button 1 URL
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://example.com"
+                          value={presenceData.button1Url}
+                          onChange={(e) => setPresenceData({...presenceData, button1Url: e.target.value})}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                          Button 2 Text
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Join Discord"
+                          value={presenceData.button2Text}
+                          onChange={(e) => setPresenceData({...presenceData, button2Text: e.target.value})}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                          Button 2 URL
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://discord.gg/invite"
+                          value={presenceData.button2Url}
+                          onChange={(e) => setPresenceData({...presenceData, button2Url: e.target.value})}
+                          className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -229,16 +352,29 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                 <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
                   <div className="flex items-start gap-4">
                     {presenceData.image && (
-                      <div className="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
                           src={presenceData.image} 
-                          alt="Rich Presence" 
+                          alt={presenceData.imageAltText || "Rich Presence"} 
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                           }}
                         />
+                        {presenceData.smallImage && (
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-600 rounded-full overflow-hidden border-2 border-gray-800">
+                            <img 
+                              src={presenceData.smallImage} 
+                              alt={presenceData.smallImageAltText || "Status"} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                     
@@ -256,9 +392,24 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       )}
                       
                       {presenceData.line2 && (
-                        <p className="text-gray-400 text-sm truncate">
+                        <p className="text-gray-400 text-sm truncate mb-3">
                           {presenceData.line2}
                         </p>
+                      )}
+                      
+                      {(presenceData.button1Text || presenceData.button2Text) && (
+                        <div className="flex gap-2 mt-3">
+                          {presenceData.button1Text && (
+                            <div className="px-3 py-1 bg-blue-600 text-white text-xs rounded cursor-pointer hover:bg-blue-700 transition-colors">
+                              {presenceData.button1Text}
+                            </div>
+                          )}
+                          {presenceData.button2Text && (
+                            <div className="px-3 py-1 bg-gray-600 text-white text-xs rounded cursor-pointer hover:bg-gray-700 transition-colors">
+                              {presenceData.button2Text}
+                            </div>
+                          )}
+                        </div>
                       )}
                       
                       {!presenceData.title && !presenceData.line1 && !presenceData.line2 && (
@@ -285,10 +436,12 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                 <div className="bg-gray-800/30 rounded-lg p-4">
                   <h3 className="text-white font-medium mb-2">Instructions</h3>
                   <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• Enter an image URL for the Rich Presence icon</li>
-                    <li>• Add a title for your activity</li>
-                    <li>• Fill in the two detail lines</li>
-                    <li>• Click "Update Presence" to apply changes</li>
+                    <li>• <strong>Large Image:</strong> Main icon with optional alt text</li>
+                    <li>• <strong>Small Image:</strong> Status overlay icon (bottom-right)</li>
+                    <li>• <strong>Title:</strong> Main activity title</li>
+                    <li>• <strong>Lines:</strong> Two detail lines for status info</li>
+                    <li>• <strong>Buttons:</strong> Up to 2 clickable buttons with URLs</li>
+                    <li>• Click "Update Presence" to apply all changes</li>
                     <li>• Use "Clear Presence" to remove the status</li>
                   </ul>
                 </div>

@@ -10,9 +10,16 @@ export async function POST(request: NextRequest) {
     
     const clearData = {
       image: '',
+      imageAltText: '',
+      smallImage: '',
+      smallImageAltText: '',
       title: '',
       line1: '',
-      line2: ''
+      line2: '',
+      button1Text: '',
+      button1Url: '',
+      button2Text: '',
+      button2Url: ''
     }
     
     const registeredClients = clientStore.getClients()

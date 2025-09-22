@@ -74,7 +74,28 @@ const updateDiscordActivity = async (data) => {
     
     if (data.image) {
       activity.largeImageKey = data.image;
-      activity.largeImageText = data.title || 'Discord RPC';
+      activity.largeImageText = data.imageAltText || data.title || 'Discord RPC';
+    }
+    
+    if (data.smallImage) {
+      activity.smallImageKey = data.smallImage;
+      activity.smallImageText = data.smallImageAltText || 'Status';
+    }
+    
+    if (data.button1Text && data.button1Url) {
+      activity.buttons = activity.buttons || [];
+      activity.buttons.push({
+        label: data.button1Text,
+        url: data.button1Url
+      });
+    }
+    
+    if (data.button2Text && data.button2Url) {
+      activity.buttons = activity.buttons || [];
+      activity.buttons.push({
+        label: data.button2Text,
+        url: data.button2Url
+      });
     }
     
     activity.startTimestamp = Date.now();
@@ -98,7 +119,8 @@ const updateDiscordActivity = async (data) => {
 };
 
 const isDataEmpty = (data) => {
-  return !data.image && !data.title && !data.line1 && !data.line2;
+  return !data.image && !data.title && !data.line1 && !data.line2 && 
+         !data.smallImage && !data.button1Text && !data.button2Text;
 };
 
 const pollForUpdates = async () => {

@@ -4,9 +4,16 @@ import { presenceStore } from '../../../../lib/presenceStore'
 
 interface RichPresenceData {
   image: string
+  imageAltText: string
+  smallImage: string
+  smallImageAltText: string
   title: string
   line1: string
   line2: string
+  button1Text: string
+  button1Url: string
+  button2Text: string
+  button2Url: string
 }
 
 export async function POST(request: NextRequest) {
