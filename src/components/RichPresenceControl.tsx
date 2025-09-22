@@ -37,18 +37,74 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
   const [isConnected, setIsConnected] = useState(false)
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const [autoSaveTimer, setAutoSaveTimer] = useState<NodeJS.Timeout | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+
+  const normalizeUrl = (url: string) => {
+    if (!url) return url
+    if (!url.match(/^https?:\/\//)) {
+      return 'https://' + url
+    }
+    return url
+  }
+
+  const saveToLocalStorage = (data: RichPresenceData) => {
+    try {
+      localStorage.setItem('discord_rpc_config', JSON.stringify(data))
+    } catch (error) {
+      console.warn('Failed to save configuration to localStorage:', error)
+    }
+  }
+
+  const loadFromLocalStorage = (): RichPresenceData | null => {
+    try {
+      const saved = localStorage.getItem('discord_rpc_config')
+      if (saved) {
+        return JSON.parse(saved)
+      }
+    } catch (error) {
+      console.warn('Failed to load configuration from localStorage:', error)
+    }
+    return null
+  }
+
+  const debouncedSave = (data: RichPresenceData) => {
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer)
+    }
+    
+    setIsSaving(true)
+    
+    const timer = setTimeout(() => {
+      saveToLocalStorage(data)
+      setIsSaving(false)
+    }, 1000)
+    
+    setAutoSaveTimer(timer)
+  }
+
+  const updatePresenceData = (newData: RichPresenceData) => {
+    setPresenceData(newData)
+    debouncedSave(newData)
+  }
 
   const updatePresence = async () => {
     setLoading(true)
     setStatus('Updating presence...')
     
     try {
+      const normalizedData = {
+        ...presenceData,
+        button1Url: normalizeUrl(presenceData.button1Url),
+        button2Url: normalizeUrl(presenceData.button2Url)
+      }
+
       const response = await fetch('/api/rpc/update', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(presenceData)
+        body: JSON.stringify(normalizedData)
       })
 
       const data = await response.json()
@@ -56,6 +112,8 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
       if (response.ok) {
         setStatus(`Rich Presence updated! (${data.clientsNotified}/${data.totalClients} clients notified)`)
         setIsConnected(data.totalClients > 0)
+        
+        saveToLocalStorage(normalizedData)
       } else {
         setStatus('Failed to update Rich Presence')
       }
@@ -84,7 +142,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
 
       if (response.ok) {
         setStatus(`Rich Presence cleared! (${data.clientsNotified}/${data.totalClients} clients notified)`)
-        setPresenceData({ 
+        const clearedData = { 
           image: '', 
           imageAltText: '',
           smallImage: '',
@@ -96,7 +154,9 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
           button1Url: '',
           button2Text: '',
           button2Url: ''
-        })
+        }
+        setPresenceData(clearedData)
+        saveToLocalStorage(clearedData)
       } else {
         setStatus('Failed to clear Rich Presence')
       }
@@ -137,7 +197,20 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
 
   useEffect(() => {
     testConnection()
-  }, [])
+    
+    const savedConfig = loadFromLocalStorage()
+    if (savedConfig) {
+      setPresenceData(savedConfig)
+      setStatus('Configuration loaded from previous session')
+      setTimeout(() => setStatus(''), 3000)
+    }
+
+    return () => {
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer)
+      }
+    }
+  }, [autoSaveTimer])
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
@@ -146,12 +219,27 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
           <div className="p-6 border-b border-white/20">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Discord Rich Presence Control</h1>
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                  <span className="text-gray-300 text-sm">
-                    {isConnected ? 'PC client connected' : 'No PC clients connected'}
-                  </span>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  Discord Rich Presence Control
+                  {isSaving && (
+                    <span className="ml-3 text-sm text-blue-400 font-normal">
+                      💾 Saving...
+                    </span>
+                  )}
+                </h1>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                    <span className="text-gray-300 text-sm">
+                      {isConnected ? 'PC client connected' : 'No PC clients connected'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                    <span className="text-gray-300 text-sm">
+                      Auto-save enabled
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
@@ -177,7 +265,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="url"
                       placeholder="https://example.com/large-image.png"
                       value={presenceData.image}
-                      onChange={(e) => setPresenceData({...presenceData, image: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, image: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -190,7 +278,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="text"
                       placeholder="Alt text for large image"
                       value={presenceData.imageAltText}
-                      onChange={(e) => setPresenceData({...presenceData, imageAltText: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, imageAltText: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -203,7 +291,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="url"
                       placeholder="https://example.com/small-image.png"
                       value={presenceData.smallImage}
-                      onChange={(e) => setPresenceData({...presenceData, smallImage: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, smallImage: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -216,7 +304,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="text"
                       placeholder="Alt text for small image"
                       value={presenceData.smallImageAltText}
-                      onChange={(e) => setPresenceData({...presenceData, smallImageAltText: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, smallImageAltText: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -229,7 +317,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="text"
                       placeholder="Your activity title"
                       value={presenceData.title}
-                      onChange={(e) => setPresenceData({...presenceData, title: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, title: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -242,7 +330,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="text"
                       placeholder="First detail line"
                       value={presenceData.line1}
-                      onChange={(e) => setPresenceData({...presenceData, line1: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, line1: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -255,7 +343,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                       type="text"
                       placeholder="Second detail line"
                       value={presenceData.line2}
-                      onChange={(e) => setPresenceData({...presenceData, line2: e.target.value})}
+                      onChange={(e) => updatePresenceData({...presenceData, line2: e.target.value})}
                       className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     />
                   </div>
@@ -272,7 +360,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                           type="text"
                           placeholder="Visit Website"
                           value={presenceData.button1Text}
-                          onChange={(e) => setPresenceData({...presenceData, button1Text: e.target.value})}
+                          onChange={(e) => updatePresenceData({...presenceData, button1Text: e.target.value})}
                           className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -283,11 +371,12 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                         </label>
                         <input
                           type="url"
-                          placeholder="https://example.com"
+                          placeholder="example.com or https://example.com"
                           value={presenceData.button1Url}
-                          onChange={(e) => setPresenceData({...presenceData, button1Url: e.target.value})}
+                          onChange={(e) => updatePresenceData({...presenceData, button1Url: e.target.value})}
                           className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
+                        <p className="text-gray-400 text-xs mt-1">https:// will be added automatically if missing</p>
                       </div>
 
                       <div>
@@ -298,7 +387,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                           type="text"
                           placeholder="Join Discord"
                           value={presenceData.button2Text}
-                          onChange={(e) => setPresenceData({...presenceData, button2Text: e.target.value})}
+                          onChange={(e) => updatePresenceData({...presenceData, button2Text: e.target.value})}
                           className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
@@ -309,11 +398,12 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                         </label>
                         <input
                           type="url"
-                          placeholder="https://discord.gg/invite"
+                          placeholder="discord.gg/invite or https://discord.gg/invite"
                           value={presenceData.button2Url}
-                          onChange={(e) => setPresenceData({...presenceData, button2Url: e.target.value})}
+                          onChange={(e) => updatePresenceData({...presenceData, button2Url: e.target.value})}
                           className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
+                        <p className="text-gray-400 text-xs mt-1">https:// will be added automatically if missing</p>
                       </div>
                     </div>
                   </div>
@@ -441,6 +531,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                     <li>• <strong>Title:</strong> Main activity title</li>
                     <li>• <strong>Lines:</strong> Two detail lines for status info</li>
                     <li>• <strong>Buttons:</strong> Up to 2 clickable buttons with URLs</li>
+                    <li>• <strong>Auto-save:</strong> Configuration saved automatically as you type</li>
                     <li>• Click "Update Presence" to apply all changes</li>
                     <li>• Use "Clear Presence" to remove the status</li>
                   </ul>

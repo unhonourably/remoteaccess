@@ -82,20 +82,44 @@ const updateDiscordActivity = async (data) => {
       activity.smallImageText = data.smallImageAltText || 'Status';
     }
     
+    const validateUrl = (url) => {
+      if (!url) return null;
+      // Add https:// if no protocol is specified
+      if (!url.match(/^https?:\/\//)) {
+        url = 'https://' + url;
+      }
+      // Basic URL validation
+      try {
+        new URL(url);
+        return url;
+      } catch {
+        log(`Invalid URL: ${url}`, 'warning');
+        return null;
+      }
+    };
+
     if (data.button1Text && data.button1Url) {
-      activity.buttons = activity.buttons || [];
-      activity.buttons.push({
-        label: data.button1Text,
-        url: data.button1Url
-      });
+      const validUrl = validateUrl(data.button1Url);
+      if (validUrl) {
+        activity.buttons = activity.buttons || [];
+        activity.buttons.push({
+          label: data.button1Text,
+          url: validUrl
+        });
+        log(`Added button 1: "${data.button1Text}" -> ${validUrl}`, 'debug');
+      }
     }
     
     if (data.button2Text && data.button2Url) {
-      activity.buttons = activity.buttons || [];
-      activity.buttons.push({
-        label: data.button2Text,
-        url: data.button2Url
-      });
+      const validUrl = validateUrl(data.button2Url);
+      if (validUrl) {
+        activity.buttons = activity.buttons || [];
+        activity.buttons.push({
+          label: data.button2Text,
+          url: validUrl
+        });
+        log(`Added button 2: "${data.button2Text}" -> ${validUrl}`, 'debug');
+      }
     }
     
     activity.startTimestamp = Date.now();
