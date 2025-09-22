@@ -1,0 +1,17 @@
+{
+  "name": "discord-rpc-local-client",
+  "version": "1.0.0",
+  "description": "Local client to handle Discord RPC updates from Vercel website",
+  "main": "client.js",
+  "scripts": {
+    "start": "node client.js",
+    "dev": "node client.js"
+  },
+  "dependencies": {
+    "discord-rpc": "^4.0.1",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.4.7"
+  },
+  "type": "module"
+}
