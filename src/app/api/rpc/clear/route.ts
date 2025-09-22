@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-let registeredClients: { url: string; lastSeen: Date }[] = []
+import { clientStore } from '../../../../lib/clientStore'
 
 export async function POST(request: NextRequest) {
+  console.log(`[${new Date().toISOString()}] 🧹 RPC Clear request received`)
+  
   try {
     const clearData = {
       image: '',
@@ -11,7 +12,12 @@ export async function POST(request: NextRequest) {
       line2: ''
     }
     
-    const webhookPromises = registeredClients.map(async (client) => {
+    const registeredClients = clientStore.getClients()
+    console.log(`[${new Date().toISOString()}] 📡 Sending clear webhooks to ${registeredClients.length} clients`)
+    
+    const webhookPromises = registeredClients.map(async (client, index) => {
+      console.log(`[${new Date().toISOString()}] 🔄 Sending clear webhook ${index + 1}/${registeredClients.length} to ${client.url}`)
+      
       try {
         const response = await fetch(`${client.url}/clear`, {
           method: 'POST',
@@ -22,13 +28,17 @@ export async function POST(request: NextRequest) {
         })
         
         if (response.ok) {
-          client.lastSeen = new Date()
+          clientStore.updateClientLastSeen(client.url)
+          console.log(`[${new Date().toISOString()}] ✅ Clear webhook success: ${client.url}`)
           return { success: true, client: client.url }
         } else {
-          return { success: false, client: client.url, error: 'Request failed' }
+          console.log(`[${new Date().toISOString()}] ❌ Clear webhook failed: ${client.url} (Status: ${response.status})`)
+          return { success: false, client: client.url, error: `HTTP ${response.status}` }
         }
       } catch (error) {
-        return { success: false, client: client.url, error: 'Connection failed' }
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.log(`[${new Date().toISOString()}] ❌ Clear webhook error: ${client.url} (${errorMessage})`)
+        return { success: false, client: client.url, error: errorMessage }
       }
     })
     
@@ -37,20 +47,20 @@ export async function POST(request: NextRequest) {
       result.status === 'fulfilled' && result.value.success
     ).length
     
-    registeredClients = registeredClients.filter(client => {
-      const timeDiff = Date.now() - client.lastSeen.getTime()
-      return timeDiff < 300000
-    })
+    const finalClientCount = clientStore.getClientCount()
+    console.log(`[${new Date().toISOString()}] 📊 Clear complete: ${successfulClears}/${finalClientCount} clients notified`)
     
     return NextResponse.json({
       success: true,
       message: `Rich Presence cleared successfully`,
       clientsNotified: successfulClears,
-      totalClients: registeredClients.length
+      totalClients: finalClientCount
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.log(`[${new Date().toISOString()}] ❌ Clear API Error: ${errorMessage}`)
     return NextResponse.json(
-      { success: false, message: 'Failed to clear Rich Presence' },
+      { success: false, message: 'Failed to clear Rich Presence', error: errorMessage },
       { status: 500 }
     )
   }

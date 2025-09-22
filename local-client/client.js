@@ -257,8 +257,8 @@ const startClient = async () => {
   log('Step 2: Registering with Vercel server...', 'info');
   await registerWithServer();
   
-  log('Setting up periodic server registration (every 60 seconds)', 'info');
-  setInterval(registerWithServer, 60000);
+  log('Setting up periodic server registration (every 30 seconds)', 'info');
+  setInterval(registerWithServer, 30000);
   
   log('Setting up status summary (every 5 minutes)', 'info');
   setInterval(printStatusSummary, 300000);

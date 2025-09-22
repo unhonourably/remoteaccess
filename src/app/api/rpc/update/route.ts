@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { clientStore } from '../../../../lib/clientStore'
 
 interface RichPresenceData {
   image: string
@@ -14,8 +15,6 @@ let currentPresenceData: RichPresenceData = {
   line2: ''
 }
 
-let registeredClients: { url: string; lastSeen: Date }[] = []
-
 export async function POST(request: NextRequest) {
   console.log(`[${new Date().toISOString()}] 📥 RPC Update request received`)
   
@@ -25,6 +24,7 @@ export async function POST(request: NextRequest) {
     
     currentPresenceData = data
     
+    const registeredClients = clientStore.getClients()
     console.log(`[${new Date().toISOString()}] 📡 Sending webhooks to ${registeredClients.length} clients`)
     
     const webhookPromises = registeredClients.map(async (client, index) => {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         })
         
         if (response.ok) {
-          client.lastSeen = new Date()
+          clientStore.updateClientLastSeen(client.url)
           console.log(`[${new Date().toISOString()}] ✅ Webhook success: ${client.url}`)
           return { success: true, client: client.url }
         } else {
@@ -60,18 +60,14 @@ export async function POST(request: NextRequest) {
       result.status === 'fulfilled' && result.value.success
     ).length
     
-    registeredClients = registeredClients.filter(client => {
-      const timeDiff = Date.now() - client.lastSeen.getTime()
-      return timeDiff < 300000
-    })
-    
-    console.log(`[${new Date().toISOString()}] 📊 Update complete: ${successfulUpdates}/${registeredClients.length} clients notified`)
+    const finalClientCount = clientStore.getClientCount()
+    console.log(`[${new Date().toISOString()}] 📊 Update complete: ${successfulUpdates}/${finalClientCount} clients notified`)
     
     return NextResponse.json({
       success: true,
       message: `Rich Presence updated successfully`,
       clientsNotified: successfulUpdates,
-      totalClients: registeredClients.length,
+      totalClients: finalClientCount,
       webhookResults: results.map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'Promise rejected' })
     })
   } catch (error) {
@@ -85,9 +81,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
+  const clients = clientStore.getClients()
   return NextResponse.json({
     currentData: currentPresenceData,
-    connectedClients: registeredClients.length,
-    clients: registeredClients.map(c => ({ url: c.url, lastSeen: c.lastSeen }))
+    connectedClients: clients.length,
+    clients: clients.map(c => ({ url: c.url, lastSeen: c.lastSeen }))
   })
 }
