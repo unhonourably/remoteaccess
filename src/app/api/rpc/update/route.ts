@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clientStore } from '../../../../lib/clientStore'
+import { presenceStore } from '../../../../lib/presenceStore'
 
 interface RichPresenceData {
   image: string
   title: string
   line1: string
   line2: string
-}
-
-let currentPresenceData: RichPresenceData = {
-  image: '',
-  title: '',
-  line1: '',
-  line2: ''
 }
 
 export async function POST(request: NextRequest) {
@@ -22,7 +16,7 @@ export async function POST(request: NextRequest) {
     const data: RichPresenceData = await request.json()
     console.log(`[${new Date().toISOString()}] 📝 RPC Data:`, JSON.stringify(data))
     
-    currentPresenceData = data
+    presenceStore.updatePresence(data)
     
     const registeredClients = clientStore.getClients()
     console.log(`[${new Date().toISOString()}] 📡 Sending webhooks to ${registeredClients.length} clients`)
@@ -82,8 +76,9 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   const clients = clientStore.getClients()
+  const currentData = presenceStore.getCurrentPresence()
   return NextResponse.json({
-    currentData: currentPresenceData,
+    currentData: currentData,
     connectedClients: clients.length,
     clients: clients.map(c => ({ url: c.url, lastSeen: c.lastSeen }))
   })

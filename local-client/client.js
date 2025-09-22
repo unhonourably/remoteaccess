@@ -8,6 +8,7 @@ dotenv.config();
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1234567890123456789';
 const VERCEL_URL = process.env.VERCEL_URL || 'http://localhost:3000';
 const LOCAL_PORT = process.env.LOCAL_PORT || 3001;
+const PUBLIC_URL = process.env.PUBLIC_URL || `http://localhost:${LOCAL_PORT}`;
 
 const rpc = new DiscordRPC.Client({ transport: 'ipc' });
 const app = express();
@@ -142,7 +143,7 @@ const registerWithServer = async () => {
   log(`Attempting to register with server: ${VERCEL_URL}`, 'network');
   
   try {
-    const clientUrl = `http://localhost:${LOCAL_PORT}`;
+    const clientUrl = PUBLIC_URL;
     log(`Registering client URL: ${clientUrl}`, 'debug');
     
     const response = await fetch(`${VERCEL_URL}/api/rpc/register`, {
@@ -246,6 +247,7 @@ const startClient = async () => {
   log(`Vercel URL: ${VERCEL_URL}`, 'info');
   log(`Discord Client ID: ${CLIENT_ID}`, 'info');
   log(`Local Port: ${LOCAL_PORT}`, 'info');
+  log(`Public URL: ${PUBLIC_URL}`, 'info');
   
   app.listen(LOCAL_PORT, () => {
     log(`Local webhook server running on http://localhost:${LOCAL_PORT}`, 'success');

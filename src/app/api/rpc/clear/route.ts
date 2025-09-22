@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clientStore } from '../../../../lib/clientStore'
+import { presenceStore } from '../../../../lib/presenceStore'
 
 export async function POST(request: NextRequest) {
   console.log(`[${new Date().toISOString()}] 🧹 RPC Clear request received`)
   
   try {
+    presenceStore.clearPresence()
+    
     const clearData = {
       image: '',
       title: '',

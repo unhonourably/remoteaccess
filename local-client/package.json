@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node client.js",
     "dev": "node client.js",
-    "test": "node test-client.js"
+    "test": "node test-client.js",
+    "tunnel": "node start-with-tunnel.js",
+    "simple": "node simple-client.js"
   },
   "dependencies": {
     "discord-rpc": "^4.0.1",
