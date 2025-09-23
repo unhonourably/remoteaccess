@@ -37,6 +37,8 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
   const [isConnected, setIsConnected] = useState(false)
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(false)
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(() => loadAutoRefreshPreference())
+  const [nextRefresh, setNextRefresh] = useState<Date | null>(null)
 
   const normalizeUrl = (url: string) => {
     if (!url) return url
@@ -54,6 +56,26 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
     }
   }
 
+  const saveAutoRefreshPreference = (enabled: boolean) => {
+    try {
+      localStorage.setItem('discord_rpc_auto_refresh', JSON.stringify(enabled))
+    } catch (error) {
+      console.warn('Failed to save auto-refresh preference to localStorage:', error)
+    }
+  }
+
+  const loadAutoRefreshPreference = (): boolean => {
+    try {
+      const saved = localStorage.getItem('discord_rpc_auto_refresh')
+      if (saved !== null) {
+        return JSON.parse(saved)
+      }
+    } catch (error) {
+      console.warn('Failed to load auto-refresh preference from localStorage:', error)
+    }
+    return true
+  }
+
   const loadFromLocalStorage = (): RichPresenceData | null => {
     try {
       const saved = localStorage.getItem('discord_rpc_config')
@@ -67,9 +89,11 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
   }
 
 
-  const updatePresence = async () => {
-    setLoading(true)
-    setStatus('Updating presence...')
+  const updatePresence = async (isAutoRefresh = false) => {
+    if (!isAutoRefresh) {
+      setLoading(true)
+      setStatus('Updating presence...')
+    }
     
     try {
       const normalizedData = {
@@ -89,20 +113,37 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
       const data = await response.json()
 
       if (response.ok) {
-        setStatus(`Rich Presence updated! (${data.clientsNotified}/${data.totalClients} clients notified)`)
+        if (!isAutoRefresh) {
+          setStatus(`Rich Presence updated! (${data.clientsNotified}/${data.totalClients} clients notified)`)
+        } else {
+          setStatus(`Auto-refresh: Rich Presence refreshed (${data.clientsNotified}/${data.totalClients} clients)`)
+        }
         setIsConnected(data.totalClients > 0)
         
         saveToLocalStorage(normalizedData)
+        
+        if (autoRefreshEnabled) {
+          const nextRefreshTime = new Date(Date.now() + 10 * 60 * 1000)
+          setNextRefresh(nextRefreshTime)
+        }
       } else {
-        setStatus('Failed to update Rich Presence')
+        if (!isAutoRefresh) {
+          setStatus('Failed to update Rich Presence')
+        }
       }
     } catch (error) {
-      setStatus('Error updating Rich Presence')
-      setIsConnected(false)
+      if (!isAutoRefresh) {
+        setStatus('Error updating Rich Presence')
+        setIsConnected(false)
+      }
     }
     
-    setLoading(false)
-    setTimeout(() => setStatus(''), 5000)
+    if (!isAutoRefresh) {
+      setLoading(false)
+      setTimeout(() => setStatus(''), 5000)
+    } else {
+      setTimeout(() => setStatus(''), 3000)
+    }
   }
 
   const clearPresence = async () => {
@@ -185,6 +226,32 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
     }
   }, [])
 
+  useEffect(() => {
+    if (!autoRefreshEnabled) return
+
+    const hasValidPresence = presenceData.title || presenceData.line1 || presenceData.line2 || presenceData.image
+    if (!hasValidPresence) return
+
+    const interval = setInterval(() => {
+      updatePresence(true)
+    }, 10 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [autoRefreshEnabled, presenceData])
+
+  useEffect(() => {
+    if (!autoRefreshEnabled) {
+      setNextRefresh(null)
+      return
+    }
+
+    const hasValidPresence = presenceData.title || presenceData.line1 || presenceData.line2 || presenceData.image
+    if (hasValidPresence) {
+      const nextRefreshTime = new Date(Date.now() + 10 * 60 * 1000)
+      setNextRefresh(nextRefreshTime)
+    }
+  }, [autoRefreshEnabled, presenceData])
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
       <div className="max-w-4xl mx-auto">
@@ -199,6 +266,17 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                     {isConnected ? 'PC client connected' : 'No PC clients connected'}
                   </span>
                 </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className={`w-3 h-3 rounded-full ${autoRefreshEnabled ? 'bg-blue-400' : 'bg-gray-400'}`}></div>
+                  <span className="text-gray-300 text-sm">
+                    {autoRefreshEnabled ? 'Auto-refresh enabled (10min)' : 'Auto-refresh disabled'}
+                  </span>
+                </div>
+                {nextRefresh && (
+                  <div className="text-gray-400 text-xs mt-1">
+                    Next refresh: {nextRefresh.toLocaleTimeString()}
+                  </div>
+                )}
               </div>
               <button
                 onClick={onLogout}
@@ -369,7 +447,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
-                    onClick={updatePresence}
+                    onClick={() => updatePresence(false)}
                     disabled={loading}
                     className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800 text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
@@ -382,6 +460,29 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                     className="flex-1 py-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
                   >
                     {loading ? 'Clearing...' : 'Clear Presence'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                  <div>
+                    <div className="text-white font-medium text-sm">Auto-Refresh</div>
+                    <div className="text-gray-400 text-xs">Automatically refresh every 10 minutes</div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newValue = !autoRefreshEnabled
+                      setAutoRefreshEnabled(newValue)
+                      saveAutoRefreshPreference(newValue)
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 ${
+                      autoRefreshEnabled ? 'bg-blue-600' : 'bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        autoRefreshEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
                   </button>
                 </div>
 
@@ -491,6 +592,7 @@ export default function RichPresenceControl({ onLogout }: RichPresenceControlPro
                     <li>• <strong>Buttons:</strong> Up to 2 clickable buttons with URLs</li>
                     <li>• Click "Update Presence" to save and apply all changes</li>
                     <li>• Use "Clear Presence" to remove the status</li>
+                    <li>• <strong>Auto-Refresh:</strong> Keeps presence active every 10 minutes</li>
                   </ul>
                 </div>
               </div>
